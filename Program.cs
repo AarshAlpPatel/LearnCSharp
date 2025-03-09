@@ -6,12 +6,20 @@ namespace Program {
     public class Program {    
         
        public static void Main(String[] args) {    
-            Console.WriteLine("Hello, World!");
-            Console.WriteLine($"Current Directory is: {Directory.GetCurrentDirectory()}");
-
             List<int> firstList = new List<int>();
             List<int> secondList = new List<int>();
 
+            readFile(firstList, secondList);
+            
+            int totalDistance = getDistanceScore(firstList, secondList);
+            Console.WriteLine("The total distance between both lists is: " + totalDistance);
+
+            int simScore = getSimilarityScore(firstList, secondList);
+            Console.WriteLine("The similarity score between the two lists is: " + simScore);
+       }
+
+
+        public static void readFile(List<int> firstList, List<int> secondList) {
             string newPath = Directory.GetCurrentDirectory() + "/input/day1.txt";
 
             using (StreamReader sr = File.OpenText(newPath)) {
@@ -25,14 +33,7 @@ namespace Program {
 
             firstList.Sort();
             secondList.Sort();
-            
-            int totalDistance = getDistanceScore(firstList, secondList);
-            Console.WriteLine("The total distance between both lists is: " + totalDistance);
-
-            int simScore = getSimilarityScore(firstList, secondList);
-            Console.WriteLine("The similarity score between the two lists is: " + simScore);
-       }
-
+        }
        public static int getSimilarityScore(List<int> firstList, List<int> secondList) {
                 
             Dictionary<int, int> secondListMap = new Dictionary<int, int>();
