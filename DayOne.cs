@@ -18,7 +18,7 @@ namespace Program {
             string newPath = Directory.GetCurrentDirectory() + "/input/day1.txt";
 
             using (StreamReader sr = File.OpenText(newPath)) {
-                string s = String.Empty;
+                string? s = String.Empty;
                 while ((s = sr.ReadLine()) != null) {
                     string[] locationId = s.Split("   ");
                     firstList.Add(Convert.ToInt32(locationId[0]));
