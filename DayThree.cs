@@ -13,39 +13,49 @@ namespace Program {
 
             long sum = 0;
             long instructionSum = 0;
-            foreach (string s in input) {
-                var doRegex = new Regex("do()");
-                var dontRegex = new Regex("don't()");
-                var multRegex = new Regex("mul\\([0-9]+,[0-9]+\\)");
 
-                MatchCollection multMatches = multRegex.Matches(s);
-                MatchCollection dontMatches = dontRegex.Matches(s);
-                MatchCollection doMatches = doRegex.Matches(s);
+            String first = input[0];
+            Console.WriteLine("The initial input is: \n" + first);
+            string newS = first;                
+            var doRegex = new Regex("do()");
+            var dontRegex = new Regex("don't()");
+            var multRegex = new Regex("mul\\([0-9]+,[0-9]+\\)");
 
-                List<int> dontIndices = dontMatches.Select(s => s.Index).ToList<int>();
-                List<int> doIndices = doMatches.Select(s => s.Index).ToList<int>();
+            MatchCollection multMatches = multRegex.Matches(first);
+            MatchCollection dontMatches = dontRegex.Matches(first);
+            MatchCollection doMatches = doRegex.Matches(first);
 
-                List<int> multIndices = multMatches.Select(s => s.Index).ToList<int>();
-                List<string> multStrings = multMatches.Select(s => s.Value).ToList<string>();
+            List<int> dontIndices = dontMatches.Select(s => s.Index).ToList<int>();
+            List<int> doIndices = doMatches.Select(s => s.Index).ToList<int>();
 
-                for (int i = 0; i < multIndices.Count; i++) {
-                    int dontIndex = 0;
-                    int doIndex = 0;
-                    while ((dontIndex + 1) < dontIndices.Count && dontIndices[dontIndex + 1] < multIndices[i]) {
-                        dontIndex++;
-                    }
-                    while ((doIndex + 1) < doIndices.Count && doIndices[doIndex + 1] < multIndices[i]) {
-                        doIndex++;
-                    }
-                    if ((dontIndex < dontIndices.Count) && (doIndex < doIndices.Count) && doIndices[doIndex] > dontIndices[dontIndex]) {
-                        //valid
-                        instructionSum += multiplyString(multStrings[i]);
-                    }
+            List<int> multIndices = multMatches.Select(s => s.Index).ToList<int>();
+            List<string> multStrings = multMatches.Select(s => s.Value).ToList<string>();
+
+            for (int i = 0; i < multIndices.Count; i++) {
+                int dontIndex = 0;
+                int doIndex = 0;
+
+                while ((dontIndex + 1) < dontIndices.Count && dontIndices[dontIndex + 1] < multIndices[i]) {
+                    dontIndex++;
+                }
+                while ((doIndex + 1) < doIndices.Count && doIndices[doIndex + 1] < multIndices[i]) {
+                    doIndex++;
+                }
+                if ((dontIndex < dontIndices.Count) && (doIndex < doIndices.Count) && doIndices[doIndex] >= dontIndices[dontIndex]) {
+                    //valid
+                    int len = multStrings[i].Length;
+                    int startIndex = multIndices[i];
+                    newS = newS.Substring(0, startIndex) + newS.Substring(startIndex, len).ToUpper() + newS.Substring(startIndex + len);
+                    instructionSum += multiplyString(multStrings[i]);
                 }
 
-                
-                sum += getMultiplicationSum(s);
+
+//                sum += getMultiplicationSum(s);
             }
+
+            
+            Console.WriteLine("The new input afterwards is: \n" + newS);
+            Console.WriteLine("original length: " + first.Length + "\n new length: " + newS.Length); 
             Console.WriteLine($"Total sum of garbled input: {sum}");
             Console.WriteLine($"Total sum of input with instructions: {instructionSum}");
         }
