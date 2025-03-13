@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.RegularExpressions;
 
 namespace Program {
@@ -14,54 +15,67 @@ namespace Program {
             long sum = 0;
             long instructionSum = 0;    
 
-            int j = 0;
-            string s = input.Last();
-            var doRegex = new Regex("do\\(\\)");
-            var dontRegex = new Regex("don't\\(\\)");
-            var multRegex = new Regex("mul\\([0-9]+,[0-9]+\\)");
+            foreach (string s in input) {
+                var doRegex = new Regex("do\\(\\)");
+                var dontRegex = new Regex("don't\\(\\)");
+                var multRegex = new Regex("mul\\([0-9]+,[0-9]+\\)");
 
-            MatchCollection multMatches = multRegex.Matches(s);
-            MatchCollection dontMatches = dontRegex.Matches(s);
-            MatchCollection doMatches = doRegex.Matches(s);
+                MatchCollection multMatches = multRegex.Matches(s);
+                MatchCollection dontMatches = dontRegex.Matches(s);
+                MatchCollection doMatches = doRegex.Matches(s);
 
-            List<int> dontIndices = dontMatches.Select(s => s.Index).Prepend<int>(-1).ToList<int>();
-            List<int> doIndices = doMatches.Select(s => s.Index).Prepend<int>(0).ToList<int>();
+                // Prepending -1 and 0 to Dont and Do lists respectively to have proper init state
+                // which allows all initial mult pairs seen before any do or dont to be considered valid
+                List<int> dontIndices = dontMatches.Select(s => s.Index).Prepend<int>(-1).ToList<int>();
+                List<int> doIndices = doMatches.Select(s => s.Index).Prepend<int>(0).ToList<int>();
 
-            List<int> multIndices = multMatches.Select(s => s.Index).ToList<int>();
-            List<string> multStrings = multMatches.Select(s => s.Value).ToList<string>();
+                List<int> multIndices = multMatches.Select(s => s.Index).ToList<int>();
+                List<string> multStrings = multMatches.Select(s => s.Value).ToList<string>();
 
-            string newS = s;
-            for (int i = 0; i < multIndices.Count; i++) {
-                int dontIndex = 0;
-                int doIndex = 0;
+                string newS = s;
+                for (int i = 0; i < multIndices.Count; i++) {
+                    int dontIndex = 0;
+                    int doIndex = 0;
 
-                Console.WriteLine(multStrings[i] + " at index: " + multIndices[i]);
+                    while (((dontIndex + 1) < dontIndices.Count) && (dontIndices[dontIndex + 1] < multIndices[i])) {
+                        dontIndex++;
+                    }
+                    while (((doIndex + 1) < doIndices.Count) && (doIndices[doIndex + 1] < multIndices[i])) {
+                        doIndex++;
+                    }
 
-                while (((dontIndex + 1) < dontIndices.Count) && (dontIndices[dontIndex + 1] < multIndices[i])) {
-                    dontIndex++;
+                    if ((dontIndex < dontIndices.Count) && (doIndex < doIndices.Count) && doIndices[doIndex] > dontIndices[dontIndex]) {
+                        //valid
+                        newS = newS.Substring(0, multIndices[i]) + newS.Substring(multIndices[i], multStrings[i].Length).ToUpper() + newS.Substring(multIndices[i] + multStrings[i].Length);
+                        instructionSum += multiplyString(multStrings[i]);
+                    }
                 }
-                while (((doIndex + 1) < doIndices.Count) && (doIndices[doIndex + 1] < multIndices[i])) {
-                    doIndex++;
-                }
-
-                Console.WriteLine("Closest don't value is at index: " + dontIndices[dontIndex]);
-                Console.WriteLine("Closest do value is at index: " + doIndices[doIndex]);
-                if ((dontIndex < dontIndices.Count) && (doIndex < doIndices.Count) && doIndices[doIndex] > dontIndices[dontIndex]) {
-                    //valid
-                    newS = newS.Substring(0, multIndices[i]) + newS.Substring(multIndices[i], multStrings[i].Length).ToUpper() + newS.Substring(multIndices[i] + multStrings[i].Length);
-                    instructionSum += multiplyString(multStrings[i]);
-                    Console.WriteLine("ADDED TO SUM");
-                }
+                sum += getMultiplicationSum(s);
             }
-            j++;
-            Console.WriteLine($"\n--------------------- Case #{j} -------------------- \n"); 
-            Console.WriteLine("New Input: \n" + newS);
-            sum += getMultiplicationSum(s);
             
 
             
             Console.WriteLine($"Total sum of garbled input: {sum}");
             Console.WriteLine($"Total sum of input with instructions: {instructionSum}");
+            
+            int actualInstructionSum = 0;
+            foreach (string s in input) {
+                actualInstructionSum += newSolution(s);
+            }
+            Console.WriteLine($"Actual sum of input with instructions is: {actualInstructionSum}"); 
+        }
+
+        public static int newSolution(String s) {
+            string newS = "do()" + s + "don't()";
+            var doDontRegex = new Regex("do\\(\\)(.*?)don't\\(\\)");
+            MatchCollection validSections = doDontRegex.Matches(newS);
+            
+            int sum = 0;
+            foreach (Match match in validSections) {
+               sum += getMultiplicationSum(match.Value); 
+            }
+
+            return sum;
         }
 
         public static int multiplyString(String s) {
